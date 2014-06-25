@@ -44,7 +44,7 @@ Opts::validate(\&validate);
 
 Util::connect();
 my $vms = find_vms();
-process_vms($vms);
+process_vms($vms) if (prompt_user("Continue? "));
 Util::disconnect();
 close_log();
 
@@ -74,8 +74,18 @@ sub find_vms {
 
   print_msg("VM lookup complete");
 
-  return $vm_views if (scalar @$vm_views > 0);
-  bailout("No virtual machines found for " . Opts::get_option('vmname'));
+  if (scalar @$vm_views > 0) {
+    print_msg("Found " . scalar @$vm_views . " VM(s)");
+    my @vmlist;
+    foreach my $vm (@$vm_views) {
+      push(@vmlist, $vm->name);
+    }
+    print_msg(join(', ', @vmlist));
+    return $vm_views;
+  }
+  else {
+    bailout("No virtual machines found for " . $name;
+  }
 }
 
 sub process_vms {
@@ -84,7 +94,10 @@ sub process_vms {
   print_msg("Rebuilding " . scalar @$vms . " VM(s)");
 
   foreach my $vm (@$vms) {
-    if (prompt_user($vm->name)) {
+    my $message = "Verify that " . $vm->name . " is configured to build on next boot\n";
+    $message .= "Are you sure you want to rebuild " . $vm->name? . " ";
+
+    if (prompt_user($message)) {
       set_netboot($vm);
       reboot($vm);
       sleep(10);
@@ -97,12 +110,11 @@ sub process_vms {
 }
 
 sub prompt_user {
-  my ($vmname) = @_;
+  my ($message) = @_;
 
   return TRUE if Opts::option_is_set('quiet');
 
-  print "Verify that $vmname is configured to build on next boot\n";
-  print "Are you sure you want to rebuild $vmname? ";
+  print $message;
 
   my $input = <STDIN>;
   $input =~ s/[nrft]//g;

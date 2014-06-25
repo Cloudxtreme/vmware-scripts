@@ -42,7 +42,7 @@ Opts::validate(\&validate);
 
 Util::connect();
 my $vms = find_vms();
-process_vms($vms);
+process_vms($vms) if (prompt_user("Continue? "));
 Util::disconnect();
 close_log();
 
@@ -74,10 +74,15 @@ sub find_vms {
 
   if (scalar @$vm_views > 0) {
     print_msg("Found " . scalar @$vm_views . " VM(s)");
+    my @vmlist;
+    foreach my $vm (@$vm_views) {
+      push(@vmlist, $vm->name);
+    }
+    print_msg(join(', ', @vmlist));
     return $vm_views;
   }
   else {
-    bailout("No virtual machines found for " . Opts::get_option('vmname'));
+    bailout("No virtual machines found for " . $name);
   }
 }
 
@@ -93,11 +98,8 @@ sub process_vms {
     my $vmh = $vm->runtime->host;
     my $vmh_name = Vim::get_view(mo_ref => $vmh)->name;
 
-    # $vmh_mapping{$vmh_name} = [] unless defined $vmh_mapping{$vmh_name};
-
     push(@{$vmh_mapping{$vmh_name}}, $vm_name);
     print_msg(".", TRUE);
-    # print_msg($vm_name . " => " . $vmh_name);
   }
 
   print_msg("Done");
@@ -108,6 +110,23 @@ sub process_vms {
       print_msg("  " . $guest);
     }
     print_msg("");
+  }
+}
+
+sub prompt_user {
+  my ($message) = @_;
+
+  return TRUE if Opts::option_is_set('quiet');
+
+  print $message;
+
+  my $input = <STDIN>;
+  $input =~ s/[nrft]//g;
+  if ($input =~ /^y$|^yes$/i) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
   }
 }
 
