@@ -156,8 +156,14 @@ sub reboot {
   my $mor_host = $vm->runtime->host;
   my $hostname = Vim::get_view(mo_ref => $mor_host)->name;
   eval {
-    $vm->ResetVM();
-    print_msg("Virtual Machine '" . $vm->name . "' on $hostname reset successfully");
+    if ($vm->runtime->powerState->val eq 'poweredOn') {
+      $vm->ResetVM();
+      print_msg("Virtual Machine '" . $vm->name . "' on $hostname reset successfully");
+    }
+    else {
+      $vm->PowerOnVM();
+      print_msg("Virtual Machine '" . $vm->name . "' on $hostname powered on successfully");
+    }
   };
   if ($@) {
     if (ref($@) eq 'SoapFault') {
