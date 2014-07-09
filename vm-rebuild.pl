@@ -95,7 +95,7 @@ sub process_vms {
 
   foreach my $vm (@$vms) {
     my $message = "Verify that " . $vm->name . " is configured to build on next boot\n";
-    $message .= "Are you sure you want to rebuild " . $vm->name . " ";
+    $message .= "Are you sure you want to rebuild " . $vm->name . "? ";
 
     if (prompt_user($message)) {
       set_netboot($vm);
